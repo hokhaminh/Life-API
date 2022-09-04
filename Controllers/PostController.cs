@@ -32,8 +32,8 @@ namespace Life_API.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "User")]
-        public async Task<ActionResult> CreatePost([FromForm] CreatePostDTO newPost)
+        //[Authorize(Roles = "User")]
+        public ActionResult CreatePost( CreatePostDTO newPost)
         {
             //(bool isImage, string errorMsg) = CheckImage.CheckImageExtension(newPost.image);
             //if (isImage == false)
@@ -41,21 +41,21 @@ namespace Life_API.Controllers
             //    return Conflict(new ResponseDTO(409, errorMsg));
             //}
 
-            string fileName = ContentDispositionHeaderValue.Parse(newPost.Image.ContentDisposition).FileName.Trim('"');
-            Stream stream = newPost.Image.OpenReadStream();
-            long fileLength = newPost.Image.Length;
-            string fileType = newPost.Image.ContentType;
+            //string fileName = ContentDispositionHeaderValue.Parse(newPost.Image.ContentDisposition).FileName.Trim('"');
+            //Stream stream = newPost.Image.OpenReadStream();
+            //long fileLength = newPost.Image.Length;
+            //string fileType = newPost.Image.ContentType;
 
-            string avatarUrl = await Upload(stream, fileName, fileLength, fileType);
+            //string avatarUrl = await Upload(stream, fileName, fileLength, fileType);
 
             var newPostModel = new Post
             {
                 Fullname = newPost.Fullname,
-                BirthYear = newPost.BirthYear,
-                DeathYear = newPost.DeathYear,
+                //BirthYear = newPost.BirthYear,
+                //DeathYear = newPost.DeathYear,
                 Description = newPost.Description,
-                ImageURL = avatarUrl,
-                Password = newPost.Password,
+                ImageURL = "",
+                //Password = newPost.Password,
                 Title = newPost.Title,
                 UserId = newPost.UserId,
             };
@@ -126,6 +126,19 @@ namespace Life_API.Controllers
             return Ok(PostFound.Password);
         }
 
+        //Get post user id by post id
+        [HttpGet("user/{id:int}")]
+        public IActionResult GetPostUserId(int id)
+        {
+            var PostFound = db.Posts.Find(id);
+            if (PostFound == null)
+            {
+                return NotFound(new ResponseDTO(404, "Post not found"));
+            }
+
+            return Ok(PostFound.UserId);
+        }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "User")]
         public IActionResult DeletePost(int id)
@@ -153,7 +166,7 @@ namespace Life_API.Controllers
         }
 
         [HttpPut("{id:int}/update")]
-        [Authorize(Roles = "User")]
+        //[Authorize(Roles = "User")]
         public async Task<ActionResult> UpdatePost(int id, [FromForm] UpdatePostDTO updatePostDTO)
         {
             //check if Post is Existed
@@ -165,7 +178,7 @@ namespace Life_API.Controllers
             if (postFound == null) return NotFound(new ResponseDTO(404, "This post was deleted"));
 
             //check if user is the owner of the post
-            if (postFound.UserId != id) return NotFound(new ResponseDTO(403, "You are not allowed to update this post"));
+            //if (postFound.UserId != id) return NotFound(new ResponseDTO(403, "You are not allowed to update this post"));
 
             //update a record in Post
             if(updatePostDTO.Image != null)

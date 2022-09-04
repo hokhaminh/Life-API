@@ -37,7 +37,7 @@ namespace Life_API
         {
             // using Microsoft.EntityFrameworkCore;
             services.AddDbContext<AppDBContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("EFDataContext"))
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"))
                 );
        
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).
@@ -67,16 +67,7 @@ namespace Life_API
                 c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
             });
 
-            services.AddCors(options =>
-            {
-                options.AddPolicy(MyAllowSpecificOrigins,
-                                  policy =>
-                                  {
-                                      policy.WithOrigins("http://localhost:3000", "http://localhost:3000")
-                                                              .AllowAnyHeader()
-                                                              .AllowAnyMethod();
-            });
-            });
+            
 
         }
 
@@ -87,7 +78,13 @@ namespace Life_API
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("./v1/swagger.json", "Life_API v1"));
-            
+
+            app.UseCors(opt => opt.WithOrigins("https://living-life.netlify.app", "https://localhost:3000")
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials());
+
+            //app.UseMvc();
 
             app.UseHttpsRedirection();
 
@@ -97,7 +94,7 @@ namespace Life_API
 
             app.UseAuthorization();
 
-            app.UseCors(MyAllowSpecificOrigins);
+            
 
 
             app.UseEndpoints(endpoints =>

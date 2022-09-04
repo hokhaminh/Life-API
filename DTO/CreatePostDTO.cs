@@ -14,22 +14,22 @@ namespace Life_API.DTO
         //[StringLength(20, MinimumLength = 3)]
         public string Fullname { get; set; }
 
-        [Required]
-        public DateTime BirthYear { get; set; }
+        //[Required]
+        //public DateTime? BirthYear { get; set; }
 
 
-        public DateTime? DeathYear { get; set; }
+        //public DateTime? DeathYear { get; set; }
 
-        [Required]
-        public IFormFile Image { get; set; }
+        //[Required]
+        //public IFormFile? Image { get; set; }
 
         [Required]
         //[StringLength(200, MinimumLength = 20)]
         public string Description { get; set; }
 
-        [Required]
+        //[Required]
         //[StringLength(20, MinimumLength = 3)]
-        public string Password { get; set; }
+        //public string? Password { get; set; }
 
         [Required]
         public int UserId { get; set; }

@@ -20,7 +20,7 @@ namespace Life_API.Controllers
         }
 
         [HttpGet("{id:int}")]
-        //[Authorize(Roles = "User")]
+        [Authorize(Roles = "User")]
         public IActionResult ProfileDetail(int id)
         {
             //find user by id
