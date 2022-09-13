@@ -28,7 +28,7 @@ namespace Life_API.DTO
         [StringLength(20, MinimumLength = 3)]
         public string? Password { get; set; }
 
-        [Required]
+        // [Required]
         public string Token { get; set; }
 
         [Required]

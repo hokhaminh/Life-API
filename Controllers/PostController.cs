@@ -38,8 +38,8 @@ namespace Life_API.Controllers
         [Authorize(Roles = "User")]
         public async Task<ActionResult> CreatePost([FromForm] CreatePostDTO newPost)
         {
-            //check if user is passed the captcha
-            if (!await VerifyToken(newPost.Token))
+            //check if token is not null and user is passed the captcha
+            if (newPost.Token!= null && !await VerifyToken(newPost.Token))
             {
                 return BadRequest(new ResponseDTO(404, "Robot detected, if not please try again later"));
             }
