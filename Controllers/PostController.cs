@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
@@ -24,6 +26,7 @@ namespace Life_API.Controllers
         public readonly AppDBContext db;
 
         public string apiUrl = "https://api.imgbb.com/1/upload?key=1a757ca0e10490ce1d4b7574eea5343a";
+        public string secretKey= "6LepWdUhAAAAAPdhyELjzfhNCKuNZ47bSs1vb9Wn";
 
         public PostController(AppDBContext db)
         {
@@ -32,30 +35,41 @@ namespace Life_API.Controllers
         }
 
         [HttpPost("create")]
-        //[Authorize(Roles = "User")]
-        public ActionResult CreatePost( CreatePostDTO newPost)
+        [Authorize(Roles = "User")]
+        public async Task<ActionResult> CreatePost([FromForm] CreatePostDTO newPost)
         {
-            //(bool isImage, string errorMsg) = CheckImage.CheckImageExtension(newPost.image);
-            //if (isImage == false)
-            //{
-            //    return Conflict(new ResponseDTO(409, errorMsg));
-            //}
+            //check if user is passed the captcha
+            if (!await VerifyToken(newPost.Token))
+            {
+                return BadRequest(new ResponseDTO(404, "Robot detected, if not please try again later"));
+            }
+            string avatarUrl = null;
+            //check if image is null
+            if (newPost.Image != null)
+            {
+                (bool isImage, string errorMsg) = CheckImage.CheckImageExtension(newPost.Image);
+                if (isImage == false)
+                {
+                return Conflict(new ResponseDTO(409, errorMsg));
+                }
 
-            //string fileName = ContentDispositionHeaderValue.Parse(newPost.Image.ContentDisposition).FileName.Trim('"');
-            //Stream stream = newPost.Image.OpenReadStream();
-            //long fileLength = newPost.Image.Length;
-            //string fileType = newPost.Image.ContentType;
+                string fileName = ContentDispositionHeaderValue.Parse(newPost.Image.ContentDisposition).FileName.Trim('"');
+                Stream stream = newPost.Image.OpenReadStream();
+                long fileLength = newPost.Image.Length;
+                string fileType = newPost.Image.ContentType;
 
-            //string avatarUrl = await Upload(stream, fileName, fileLength, fileType);
+                avatarUrl = await Upload(stream, fileName, fileLength, fileType);
+            }
+            
 
             var newPostModel = new Post
             {
                 Fullname = newPost.Fullname,
-                //BirthYear = newPost.BirthYear,
-                //DeathYear = newPost.DeathYear,
+                BirthYear = newPost.BirthYear,
+                DeathYear = newPost.DeathYear,
                 Description = newPost.Description,
-                ImageURL = "",
-                //Password = newPost.Password,
+                ImageURL = avatarUrl,
+                Password = newPost.Password,
                 Title = newPost.Title,
                 UserId = newPost.UserId,
             };
@@ -138,6 +152,23 @@ namespace Life_API.Controllers
 
             return Ok(PostFound.UserId);
         }
+        //Check if post password is null
+        [HttpGet("password/null/{id:int}")]
+        public IActionResult IsPostPasswordNull(int id)
+        {
+            var PostFound = db.Posts.Find(id);
+            if (PostFound == null)
+            {
+                return NotFound(new ResponseDTO(404, "Post not found"));
+            }
+
+            if (PostFound.Password == null)
+            {
+                return Ok(true);
+            }
+
+            return Ok(false);
+        }
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = "User")]
@@ -166,7 +197,7 @@ namespace Life_API.Controllers
         }
 
         [HttpPut("{id:int}/update")]
-        //[Authorize(Roles = "User")]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult> UpdatePost(int id, [FromForm] UpdatePostDTO updatePostDTO)
         {
             //check if Post is Existed
@@ -203,6 +234,27 @@ namespace Life_API.Controllers
             return Ok(new ResponseDTO(200, "Update Post success"));
 
 
+        }
+        //call the google api to verify the token
+        private async Task<bool> VerifyToken(string token)
+        {
+            HttpClient httpClient = new HttpClient();
+
+            var res =  httpClient.GetAsync($"https://www.google.com/recaptcha/api/siteverify?secret=6LepWdUhAAAAAPdhyELjzfhNCKuNZ47bSs1vb9Wn&response={token}").Result;
+
+            if (res.StatusCode != HttpStatusCode.OK) 
+            {
+                return false;
+            }
+            string JSONres = await res.Content.ReadAsStringAsync();
+            dynamic JSONdata = JObject.Parse(JSONres);
+
+            if (JSONdata.success != "true" || JSONdata.score <= 0.5m)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         protected bool CheckPostExited (int id)

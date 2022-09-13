@@ -7,29 +7,29 @@ namespace Life_API.DTO
     public class CreatePostDTO
     {
         [Required]
-        //[StringLength(20, MinimumLength = 6)]
+        [StringLength(70, MinimumLength = 6)]
         public string Title { get; set; }
 
         [Required]
-        //[StringLength(20, MinimumLength = 3)]
+        [StringLength(50, MinimumLength = 3)]
         public string Fullname { get; set; }
 
-        //[Required]
-        //public DateTime? BirthYear { get; set; }
+        [Required]
+        public DateTime? BirthYear { get; set; }
 
+        public DateTime? DeathYear { get; set; }
 
-        //public DateTime? DeathYear { get; set; }
-
-        //[Required]
-        //public IFormFile? Image { get; set; }
+        public IFormFile? Image { get; set; }
 
         [Required]
-        //[StringLength(200, MinimumLength = 20)]
+        [StringLength(550, MinimumLength = 20)]
         public string Description { get; set; }
 
-        //[Required]
-        //[StringLength(20, MinimumLength = 3)]
-        //public string? Password { get; set; }
+        [StringLength(20, MinimumLength = 3)]
+        public string? Password { get; set; }
+
+        [Required]
+        public string Token { get; set; }
 
         [Required]
         public int UserId { get; set; }
